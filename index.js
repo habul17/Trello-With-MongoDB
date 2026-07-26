@@ -66,6 +66,27 @@ app.post("/signin", async (req, res) => {
 })
 
 
+app.post("/organization", authMiddleware, async (req, res) => {
+
+    const userId = req.userId;
+    const title = req.body.title;
+    const description = req.body.description;
+
+    const newOrg = await organizationModel.create({
+        title,
+        description,
+        admin : userId,
+        members : []
+    })
+
+    res.json({
+        message : "Organization Created Successfully",
+        orgId : newOrg._id
+    })
+
+})
+
+
 
 app.listen(3000, () => {
     console.log("Server is running on port 3000");
