@@ -87,6 +87,50 @@ app.post("/organization", authMiddleware, async (req, res) => {
 })
 
 
+app.post("/add-members-to-organization", authMiddleware, async (req, res) => {
+
+    const userId = req.userId;
+    const organizationId = req.body.organizationId;
+    const memberUsername = req.body.memberUsername;
+
+    const organization = await organizationModel.findOne({
+        _id : organizationId
+    })
+
+
+    if (!organization || organization.admin.toString() !== userId) {
+
+        res.status(403).json({
+            message : "Either organization doesn't exist or You are not admin of the organization"
+        })
+        return
+    }
+
+    const memberUser = await userModel.findOne({
+        username : memberUsername
+    })
+
+
+    if (!memberUser) {
+
+        res.status(403).json({
+            message : "No Members Found"
+        })
+        return
+    }
+
+    await organizationModel.updateOne(
+        { _id : organizationId },
+        { $addToSet : { members : memberUser._id } }
+    )
+
+    res.json({
+        message : "Member Added Successfully"
+    })
+
+});
+
+
 
 app.listen(3000, () => {
     console.log("Server is running on port 3000");
