@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 require('dotenv').config();
 const { userModel, organizationModel } = require('./models');
+const {authMiddleware} = require('./middleware')
 const app = express();
 
 app.use(express.json());
