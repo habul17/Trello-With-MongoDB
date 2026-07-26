@@ -1,7 +1,7 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
-require('dotenv').config();
+require('dotenv').config({ quiet: true });
 const { userModel, organizationModel } = require('./models');
 const {authMiddleware} = require('./middleware')
 const app = express();
