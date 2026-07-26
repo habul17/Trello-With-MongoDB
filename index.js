@@ -131,6 +131,89 @@ app.post("/add-members-to-organization", authMiddleware, async (req, res) => {
 });
 
 
+app.get("/organization", authMiddleware, async (req, res) => {
+
+    const userId = req.userId;
+    const organizationId = req.query.organizationId;
+
+    if (!organizationId) {
+        res.status(400).json({
+            message : "organizationId is required"
+        })
+        return
+    }
+
+    const organization = await organizationModel.findOne({
+        _id : organizationId
+    }).catch(() => null);
+
+    if (!organization) {
+        res.status(404).json({
+            message : "Organization Not Found"
+        })
+        return
+    }
+
+    const isAdmin = organization.admin.toString() === userId;
+    const isMember = organization.members.some(memberId => memberId.toString() === userId);
+
+    if (!isAdmin && !isMember) {
+
+        res.status(403).json({
+            message : "You Are Not Part Of This Organization"
+        })
+        return
+    }
+
+    res.json({
+        organization
+    })
+
+
+})
+
+
+app.delete("/member", authMiddleware, async (req, res) => {
+
+    const userId = req.userId;
+    const organizationId = req.body.organizationId;
+    const memberUsername = req.body.memberUsername;
+
+    const organization = await organizationModel.findOne({
+        _id : organizationId
+    }).catch(() => null);
+
+    if (!organization || organization.admin.toString() !== userId) {
+
+        res.status(403).json({
+            message : "Either organization doesn't exist or You are not admin of the organization"
+        })
+        return
+    }
+
+    const memberUser = await userModel.findOne({
+        username : memberUsername
+    })
+
+    if (!memberUser) {
+
+        res.status(404).json({
+            message : "No Members Found"
+        })
+        return
+    }
+
+    await organizationModel.updateOne(
+        { _id : organizationId },
+        { $pull : { members : memberUser._id } }
+    )
+
+    res.json({
+        message : "Member Removed Successfully"
+    })
+
+})
+
 
 app.listen(3000, () => {
     console.log("Server is running on port 3000");
